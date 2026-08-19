@@ -54,7 +54,7 @@ resource todoImage 'Radius.Compute/containerImages@2025-08-01-preview' = {
     application: todoApp.id
     codeReference: 'Dockerfile'
     build: {
-      source: 'git::https://github.com/nellshamrell/todo-list-app.git?ref=5a6fbf5caf982f1d928fe6c1c32aa74f1e95e063'
+      source: 'git::https://github.com/nellshamrell/todo-list-app.git?ref=fa65ec510349eade285be783754176652106a5fa'
       platforms: [
         'linux/amd64'
       ]
