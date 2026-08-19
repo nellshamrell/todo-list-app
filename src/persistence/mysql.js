@@ -11,9 +11,25 @@ const {
     MYSQL_PASSWORD_FILE: PASSWORD_FILE,
     MYSQL_DB: DB,
     MYSQL_DB_FILE: DB_FILE,
+    MYSQL_SSL: SSL,
 } = process.env;
 
 let pool;
+
+// Managed MySQL offerings (e.g. Azure Database for MySQL Flexible Server) set
+// require_secure_transport=ON by default, so plaintext connections are rejected.
+// Enable TLS when asked to, or when the host is a known managed endpoint.
+function sslOptions(host) {
+    if (SSL !== undefined) {
+        return ['1', 'true', 'yes', 'on', 'required'].includes(String(SSL).toLowerCase())
+            ? { minVersion: 'TLSv1.2' }
+            : undefined;
+    }
+
+    return String(host).endsWith('.mysql.database.azure.com')
+        ? { minVersion: 'TLSv1.2' }
+        : undefined;
+}
 
 async function init() {
     const host = HOST_FILE ? fs.readFileSync(HOST_FILE) : HOST;
@@ -28,6 +44,8 @@ async function init() {
         waitForDns: true,
     });
 
+    const ssl = sslOptions(host);
+
     pool = mysql.createPool({
         connectionLimit: 5,
         host,
@@ -35,6 +53,7 @@ async function init() {
         password,
         database,
         charset: 'utf8mb4',
+        ...(ssl ? { ssl } : {}),
     });
 
     return new Promise((acc, rej) => {
